@@ -1,0 +1,14 @@
+<configure
+    xmlns="http://namespaces.zope.org/genericsetup"
+    i18n_domain="collective.etherpad">
+
+    <upgradeStep
+        source="*"
+        destination="1001"
+        title="Upgrade"
+        description=""
+        profile="collective.etherpad:default"
+        handler=".upgrades.common"
+        />
+
+</configure>
