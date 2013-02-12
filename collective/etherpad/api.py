@@ -1,5 +1,9 @@
-from etherpad_lite import EtherpadLiteClient
+import json
+from zope import component
 from zope import interface
+from plone.registry.interfaces import IRegistry
+from collective.etherpad.settings import EtherpadSettings
+from urllib import urlopen, urlencode
 
 
 class IEtherpadLiteClient(interface.Interface):
@@ -27,22 +31,25 @@ class IEtherpadLiteClient(interface.Interface):
     def listPads(groupID):
         """returns all pads of this group
 
-        -> {code: 0, message:"ok", data: {padIDs : ["g.s8oes9dhwrvt0zif$test", "g.s8oes9dhwrvt0zif$test2"]}
-        {code: 1, message:"groupID does not exist", data: null}
+        -> {code: 0, message:"ok", data: {padIDs :
+                ["g.s8oes9dhwrvt0zif$test", "g.s8oes9dhwrvt0zif$test2"]}
+           {code: 1, message:"groupID does not exist", data: null}
         """
 
     def createGroupPad(groupID, padName, text=""):
         """create a pad in this group
 
         -> {code: 0, message:"ok", data: null}
-        {code: 1, message:"pad does already exist", data: null} * {code: 1, message:"groupID does not exist", data: null}
+           {code: 1, message:"pad does already exist", data: null}
+           {code: 1, message:"groupID does not exist", data: null}
         """
 
     def listAllGroups():
         """list all existing groups
 
-        -> {code: 0, message:"ok", data: {groupIDs: ["g.mKjkmnAbSMtCt8eL", "g.3ADWx6sbGuAiUmCy"]}}
-        {code: 0, message:"ok", data: {groupIDs: []}}
+        -> {code: 0, message:"ok",
+            data: {groupIDs: ["g.mKjkmnAbSMtCt8eL", "g.3ADWx6sbGuAiUmCy"]}}
+           {code: 0, message:"ok", data: {groupIDs: []}}
         """
 
     def createAuthor(name=None):
@@ -52,7 +59,8 @@ class IEtherpadLiteClient(interface.Interface):
         """
 
     def createAuthorIfNotExistsFor(authorMapper, name=None):
-        """this functions helps you to map your application author ids to etherpad lite author ids
+        """this functions helps you to map your application author ids to
+        etherpad lite author ids
 
         -> {code: 0, message:"ok", data: {authorID: "a.s8oes9dhwrvt0zif"}}
         """
@@ -60,7 +68,12 @@ class IEtherpadLiteClient(interface.Interface):
     def listPadsOfAuthor(authorID):
         """returns an array of all pads this author contributed to
 
-        -> {code: 0, message:"ok", data: {padIDs: ["g.s8oes9dhwrvt0zif$test", "g.s8oejklhwrvt0zif$foo"]}} {code: 1, message:"authorID does not exist", data: null}
+        -> {code: 0, message:"ok",
+            data: {padIDs: [
+                "g.s8oes9dhwrvt0zif$test",
+                "g.s8oejklhwrvt0zif$foo"
+            ]}}
+           {code: 1, message:"authorID does not exist", data: null}
         """
 
     def getAuthorName(authorID):
@@ -69,7 +82,8 @@ class IEtherpadLiteClient(interface.Interface):
 
         ->{code: 0, message:"ok", data: {authorName: "John McLear"}}
 
-        -> can't be deleted cause this would involve scanning all the pads where this author was
+        -> can't be deleted cause this would involve scanning all the pads
+           where this author was
         """
 
     # Sessions can be created between a group and an author. This allows an
@@ -86,31 +100,45 @@ class IEtherpadLiteClient(interface.Interface):
     def createSession(groupID, authorID, validUntil):
         """creates a new session. validUntil is an unix timestamp in seconds
 
-        ->{code: 0, message:"ok", data: {sessionID: "s.s8oes9dhwrvt0zif"}} {code: 1, message:"groupID doesn't exist", data: null} {code: 1, message:"authorID doesn't exist", data: null} {code: 1, message:"validUntil is in the past", data: null}
+        ->{code: 0, message:"ok", data: {sessionID: "s.s8oes9dhwrvt0zif"}}
+          {code: 1, message:"groupID doesn't exist", data: null}
+          {code: 1, message:"authorID doesn't exist", data: null}
+          {code: 1, message:"validUntil is in the past", data: null}
         """
 
     def deleteSession(sessionID):
         """deletes a session
 
-        ->{code: 1, message:"ok", data: null} {code: 1, message:"sessionID does not exist", data: null}
+        ->{code: 1, message:"ok", data: null}
+          {code: 1, message:"sessionID does not exist", data: null}
         """
 
     def getSessionInfo(sessionID):
         """returns informations about a session
 
-        ->{code: 0, message:"ok", data: {authorID: "a.s8oes9dhwrvt0zif", groupID: g.s8oes9dhwrvt0zif, validUntil: 1312201246}} {code: 1, message:"sessionID does not exist", data: null}
+        ->{code: 0, message:"ok", data: {
+              authorID: "a.s8oes9dhwrvt0zif",
+              groupID: g.s8oes9dhwrvt0zif, validUntil: 1312201246}}
+          {code: 1, message:"sessionID does not exist", data: null}
         """
 
     def listSessionsOfGroup(groupID):
         """returns all sessions of a group
 
-        ->{"code":0,"message":"ok","data":{"s.oxf2ras6lvhv2132":{"groupID":"g.s8oes9dhwrvt0zif","authorID":"a.akf8finncvomlqva","validUntil":2312905480}}} {code: 1, message:"groupID does not exist", data: null}
+        ->{"code":0,"message":"ok","data":{"s.oxf2ras6lvhv2132":{
+                "groupID":"g.s8oes9dhwrvt0zif",
+                "authorID":"a.akf8finncvomlqva",
+                "validUntil":2312905480}}}
+          {code: 1, message:"groupID does not exist", data: null}
         """
 
     def listSessionsOfAuthor(authorID):
         """returns all sessions of an author
 
-        ->{"code":0,"message":"ok","data":{"s.oxf2ras6lvhv2132":{"groupID":"g.s8oes9dhwrvt0zif","authorID":"a.akf8finncvomlqva","validUntil":2312905480}}} {code: 1, message:"authorID does not exist", data: null}
+        ->{"code":0,"message":"ok","data":{"s.oxf2ras6lvhv2132":{
+               "groupID":"g.s8oes9dhwrvt0zif","authorID":"a.akf8finncvomlqva",
+               "validUntil":2312905480}}}
+          {code: 1, message:"authorID does not exist", data: null}
         """
 
     #Pad content can be updated and retrieved through the API
@@ -118,19 +146,23 @@ class IEtherpadLiteClient(interface.Interface):
     def getText(padID, rev=None):
         """returns the text of a pad
 
-        ->{code: 0, message:"ok", data: {text:"Welcome Text"}} {code: 1, message:"padID does not exist", data: null}
+        ->{code: 0, message:"ok", data: {text:"Welcome Text"}}
+          {code: 1, message:"padID does not exist", data: null}
         """
 
     def setText(padID, text):
         """sets the text of a pad
 
-        ->{code: 0, message:"ok", data: null} {code: 1, message:"padID does not exist", data: null} * {code: 1, message:"text too long", data: null}
+        ->{code: 0, message:"ok", data: null}
+          {code: 1, message:"padID does not exist", data: null}
+          {code: 1, message:"text too long", data: null}
         """
 
     def getHTML(padID, rev=None):
         """returns the text of a pad formatted as HTML
 
-        ->{code: 0, message:"ok", data: {html:"Welcome Text<br>More Text"}} {code: 1, message:"padID does not exist", data: null}
+        ->{code: 0, message:"ok", data: {html:"Welcome Text<br>More Text"}}
+          {code: 1, message:"padID does not exist", data: null}
         """
 
     #Chat#
@@ -140,12 +172,20 @@ class IEtherpadLiteClient(interface.Interface):
 
         a part of the chat history, when start and end are given
         the whole chat histroy, when no extra parameters are given
-        -> {"code":0,"message":"ok","data":{"messages":[{"text":"foo","userId":"a.foo","time":1359199533759,"userName":"test"},{"text":"bar","userId":"a.foo","time":1359199534622,"userName":"test"}]}}
-        {code: 1, message:"start is higher or equal to the current chatHead", data: null}
-        {code: 1, message:"padID does not exist", data: null}
+        -> {"code":0,"message":"ok","data":{"messages":[
+               {"text":"foo","userId":"a.foo","time":1359199533759,
+                "userName":"test"},
+               {"text":"bar","userId":"a.foo","time":1359199534622,
+                "userName":"test"}]}
+           }
+          {code: 1, message:"start is higher or equal to the current chatHead",
+           data: null}
+          {code: 1, message:"padID does not exist", data: null}
         """
+
     def getChatHead(padID):
-        """returns the chatHead (last number of the last chat-message) of the pad
+        """returns the chatHead (last number of the last chat-message) 
+        of the pad
 
         {code: 0, message:"ok", data: {chatHead: 42}}
         {code: 1, message:"padID does not exist", data: null}
@@ -157,15 +197,18 @@ class IEtherpadLiteClient(interface.Interface):
     # pads to include a $ in the name.
 
     def createPad(padID, text=None):
-        """creates a new (non-group) pad. Note that if you need to create a group Pad, you should call createGroupPad.
+        """creates a new (non-group) pad. Note that if you need to create a
+        group Pad, you should call createGroupPad.
 
-        ->{code: 0, message:"ok", data: null} {code: 1, message:"pad does already exist", data: null}
+        ->{code: 0, message:"ok", data: null}
+          {code: 1, message:"pad does already exist", data: null}
         """
 
     def getRevisionsCount(padID):
         """returns the number of revisions of this pad
 
-        ->{code: 0, message:"ok", data: {revisions: 56}} {code: 1, message:"padID does not exist", data: null}
+        ->{code: 0, message:"ok", data: {revisions: 56}}
+          {code: 1, message:"padID does not exist", data: null}
         """
 
     def padUsersCount(padID):
@@ -177,68 +220,86 @@ class IEtherpadLiteClient(interface.Interface):
     def padUsers(padID):
         """returns the list of users that are currently editing this pad
 
-        ->{code: 0, message:"ok", data: {padUsers: [{colorId:"#c1a9d9","name":"username1","timestamp":1345228793126,"id":"a.n4gEeMLsvg12452n"},{"colorId":"#d9a9cd","name":"Hmmm","timestamp":1345228796042,"id":"a.n4gEeMLsvg12452n"}]}} {code: 0, message:"ok", data: {padUsers: []}}
+        ->{code: 0, message:"ok",
+           data: {padUsers: [
+               {colorId:"#c1a9d9","name":"username1","timestamp":1345228793126,
+                "id":"a.n4gEeMLsvg12452n"},
+               {"colorId":"#d9a9cd","name":"Hmmm","timestamp":1345228796042,
+                "id":"a.n4gEeMLsvg12452n"}]}}
+          {code: 0, message:"ok", data: {padUsers: []}}
         """
 
     def deletePad(padID):
         """deletes a pad
 
-        ->{code: 0, message:"ok", data: null} {code: 1, message:"padID does not exist", data: null}
+        ->{code: 0, message:"ok", data: null}
+          {code: 1, message:"padID does not exist", data: null}
         """
 
     def getReadOnlyID(padID):
         """returns the read only link of a pad
 
-        ->{code: 0, message:"ok", data: {readOnlyID: "r.s8oes9dhwrvt0zif"}} {code: 1, message:"padID does not exist", data: null}
+        ->{code: 0, message:"ok", data: {readOnlyID: "r.s8oes9dhwrvt0zif"}}
+          {code: 1, message:"padID does not exist", data: null}
         """
 
-    def setPublicStatus(padID, publicStatus):
+    def setPublicStatus(padID=None, publicStatus=None):
         """sets a boolean for the public status of a pad
 
-        ->{code: 0, message:"ok", data: null} {code: 1, message:"padID does not exist", data: null}
+        ->{code: 0, message:"ok", data: null}
+          {code: 1, message:"padID does not exist", data: null}
         """
 
-    def getPublicStatus(padID):
+    def getPublicStatus(padID=None):
         """return true of false
 
-        ->{code: 0, message:"ok", data: {publicStatus: true}} {code: 1, message:"padID does not exist", data: null}
+        ->{code: 0, message:"ok", data: {publicStatus: true}}
+          {code: 1, message:"padID does not exist", data: null}
         """
 
-    def setPassword(padID, password):
+    def setPassword(padID=None, password=None):
         """returns ok or a error message
 
-        ->{code: 0, message:"ok", data: null} {code: 1, message:"padID does not exist", data: null}
+        ->{code: 0, message:"ok", data: null}
+          {code: 1, message:"padID does not exist", data: null}
         """
 
-    def isPasswordProtected(padID):
+    def isPasswordProtected(padID=None):
         """
         returns true or false
 
-        ->{code: 0, message:"ok", data: {passwordProtection: true}} {code: 1, message:"padID does not exist", data: null}
+        ->{code: 0, message:"ok", data: {passwordProtection: true}}
+          {code: 1, message:"padID does not exist", data: null}
         """
 
-    def listAuthorsOfPad(padID):
+    def listAuthorsOfPad(padID=None):
         """returns an array of authors who contributed to this pad
 
-        ->{code: 0, message:"ok", data: {authorIDs : ["a.s8oes9dhwrvt0zif", "a.akf8finncvomlqva"]} {code: 1, message:"padID does not exist", data: null}
+        ->{code: 0, message:"ok", data: {authorIDs :
+              ["a.s8oes9dhwrvt0zif", "a.akf8finncvomlqva"]
+          }
+          {code: 1, message:"padID does not exist", data: null}
         """
 
-    def getLastEdited(padID):
+    def getLastEdited(padID=None):
         """returns the timestamp of the last revision of the pad
 
-        ->{code: 0, message:"ok", data: {lastEdited: 1340815946602}} {code: 1, message:"padID does not exist", data: null}
+        ->{code: 0, message:"ok", data: {lastEdited: 1340815946602}}
+          {code: 1, message:"padID does not exist", data: null}
         """
 
-    def sendClientsMessage(padID, msg):
+    def sendClientsMessage(padID=None, msg=None):
         """sends a custom message of type msg to the pad
 
-        ->{code: 0, message:"ok", data: {}} {code: 1, message:"padID does not exist", data: null}
+        ->{code: 0, message:"ok", data: {}}
+          {code: 1, message:"padID does not exist", data: null}
         """
 
     def checkToken():
         """returns ok when the current api token is valid
 
-        ->{"code":0,"message":"ok","data":null} {"code":4,"message":"no or wrong API Key","data":null}
+        ->{"code":0,"message":"ok","data":null}
+          {"code":4,"message":"no or wrong API Key","data":null}
         """
 
     def listAllPads():
@@ -246,3 +307,52 @@ class IEtherpadLiteClient(interface.Interface):
 
         ->{code: 0, message:"ok", data: ["testPad", "thePadsOfTheOthers"]}
         """
+
+
+class HTTPAPI(object):
+    """implement IEtherpadLiteClient using HTTP API"""
+    interface.implements(IEtherpadLiteClient)
+
+    def __init__(self):
+#        self.context = context
+#        self.request = request
+        self.uri = None
+        self.apikey = None
+        self._registry = None
+        self._settings = None
+
+    def update(self):
+        if self._registry is None:
+            self._registry = component.getUtility(IRegistry)
+        if self._settings is None:
+            self._settings = self._registry.forInterface(EtherpadSettings)
+        if self.uri is None:
+            self.uri = self.settings.uri
+        if self.apikey is None:
+            self.apikey = self.settings.apikey
+
+    def _get_api(self, method):
+        self.update()
+
+        def _callable(**kwargs):
+            kwargs['apikey'] = self.apikey
+            url = self.uri + method + '?' + urlencode(kwargs)
+            flike = urlopen(url)
+            content = flike.read()
+            return json.loads(content)
+
+        return _callable
+
+    def __getattr__(self, name):
+        if name in IEtherpadLiteClient.names():
+            return self._get_api(name)
+        return super(HTTPAPI, self).__getattr__(self, name)
+
+if __name__ == '__main__':
+    api = HTTPAPI()
+    api._registry = "toto"
+    api._settings = "toto"
+    api.uri = 'http://localhost:9001/api/1.2/'
+    api.apikey = "PLONEAPIKEY"
+    res = api.createAuthorIfNotExistsFor(name="JeanMichel", authorMapper="7")
+    print res

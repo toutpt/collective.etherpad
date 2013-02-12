@@ -2,7 +2,7 @@ from zope import schema
 from zope import interface
 
 
-class Etherpad(interface.Interface):
+class EtherpadSettings(interface.Interface):
     """This is the schema for etherpad service configuration"""
 
     uri = schema.ASCIILine(
