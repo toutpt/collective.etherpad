@@ -8,8 +8,6 @@
     xmlns:plone="http://namespaces.plone.org/plone"
     i18n_domain="collective.etherpad">
 
-  <include package=".browser" />
-
   <i18n:registerTranslations directory="locales" />
 
   <genericsetup:registerProfile
@@ -26,24 +24,18 @@
       name="collective.etherpad"
       />
 
-  <!-- EXAMPLE:
-  <browser:viewlet
-      name="collective.someviewlet"
-      manager="plone.app.layout.viewlets.interfaces.IPortalFooter"
-      class=".viewlets.MyViewlet"
-      layer=".interfaces.ILayer"
-      permission="zope2.View"
-      />
   <include package="plone.app.contentmenu" />
   <browser:page
       for="*"
-      name="myview"
+      name="etherpad_view"
       menu="plone_displayviews"
-      title="Galleria"
-      class=".myfile.MyView"
-      layer=".interfaces.ILayer"
+      title="Etherpad"
+      class=".archetypes.EtherpadView"
+      template="etherpad_view.pt"
+      layer=".layer.Layer"
       permission="zope2.View"
       />
-  -->
+
+  <utility factory=".api.HTTPAPI" provides=".api.IEtherpadLiteClient"/>
 
 </configure>

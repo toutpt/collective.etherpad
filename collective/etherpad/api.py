@@ -327,9 +327,9 @@ class HTTPAPI(object):
         if self._settings is None:
             self._settings = self._registry.forInterface(EtherpadSettings)
         if self.uri is None:
-            self.uri = self.settings.uri
+            self.uri = self._settings.uri
         if self.apikey is None:
-            self.apikey = self.settings.apikey
+            self.apikey = self._settings.apikey
 
     def _get_api(self, method):
         self.update()
@@ -343,10 +343,10 @@ class HTTPAPI(object):
 
         return _callable
 
-    def __getattr__(self, name):
+    def __getattribute__(self, name):
         if name in IEtherpadLiteClient.names():
             return self._get_api(name)
-        return super(HTTPAPI, self).__getattr__(self, name)
+        return object.__getattribute__(self, name)
 
 if __name__ == '__main__':
     api = HTTPAPI()

@@ -1,0 +1,4 @@
+<registry>
+  <records interface="collective.etherpad.settings.EtherpadSettings" />
+  <records interface="collective.etherpad.settings.EtherpadEmbedSettings" />
+</registry>

@@ -14,3 +14,40 @@ class EtherpadSettings(interface.Interface):
 
     #editstate = schema.List()
     #readonlystate = schema.List()
+
+
+class EtherpadEmbedSettings(interface.Interface):
+    showLineNumbers = schema.Bool(
+        title=u"showLineNumbers",
+        default=True,
+    )
+
+    showControls = schema.Bool(
+        title=u"showControls",
+        default=True,
+    )
+
+    showChat = schema.Bool(
+        title=u"showChat",
+        default=True,
+    )
+
+    useMonospaceFont = schema.Bool(
+        title=u"useMonospaceFont",
+        default=False,
+    )
+
+    userName = schema.ASCIILine(
+        title=u"userName",
+        default="unnamed"
+    )
+
+    alwaysShowChat = schema.Bool(
+        title=u"alwaysShowChat",
+        default=False,
+    )
+
+    lang = schema.ASCIILine(
+        title=u"Lang",
+        default="en",
+    )
