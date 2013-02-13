@@ -331,17 +331,19 @@ class HTTPAPI(object):
         self.apikey = None
         self._registry = None
         self._settings = None
+        self._portal_url = None
 
     def update(self):
         if self._registry is None:
             self._registry = component.getUtility(IRegistry)
         if self._settings is None:
             self._settings = self._registry.forInterface(EtherpadSettings)
+        if self._portal_url is None:
+            self._portal_url = api.portal.get().absolute_url()
         if self.uri is None:
             basepath = self._settings.basepath
             apiversion = self._settings.apiversion
-            url = api.portal.get().absolute_url()
-            self.uri = '%s%sapi/%s/' % (url, basepath, apiversion)
+            self.uri = '%s%sapi/%s/' % (self._portal_url, basepath, apiversion)
             logger.info(self.uri)
         if self.apikey is None:
             self.apikey = self._settings.apikey

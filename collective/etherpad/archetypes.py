@@ -58,41 +58,6 @@ class EtherpadEditView(BrowserView):
         return self.index()
 
     def update(self):
-        """
-        call checkToken({'apikey': u'PLONEAPIKEY'})
-        -> {"code":0,"message":"ok","data":null}
-
-        call createGroupIfNotExistsFor({
-            'apikey': u'PLONEAPIKEY',
-            'groupMapper': '0c6df6f80afc4ddab8424939ffb7d18d'
-        })
-        -> {"code":0,"message":"ok","data":{"groupID":"g.aDAO30LjIDJWvyTU"}}
-
-        call createAuthorIfNotExistsFor({
-            'authorMapper': 'admin', 'apikey': u'PLONEAPIKEY',
-            'name': u'Jean-Michel FRANCOIS'
-        })
-        -> {"code":0,"message":"ok","data":{"authorID":"a.pocAeG7Fra31WvnO"}}
-
-        call listPads({
-            'apikey': u'PLONEAPIKEY', 'groupID': u'g.aDAO30LjIDJWvyTU'
-        })
-        -> {"code":0,"message":"ok","data":{
-            "padIDs":["g.aDAO30LjIDJWvyTU$None"]
-        }}
-
-        call listSessionsOfGroup({
-            'apikey': u'PLONEAPIKEY', 'groupID': u'g.aDAO30LjIDJWvyTU'
-        })
-        -> {"code":0,"message":"ok","data":{
-            "s.9pNACwCQjSFYwcAF":{
-                "groupID":"g.aDAO30LjIDJWvyTU",
-                "authorID":"a.pocAeG7Fra31WvnO",
-                "validUntil":1360774062
-            }
-            }}
-        setCookie("s.9pNACwCQjSFYwcAF")
-        """
         if self.portal_state is None:
             self.portal_state = component.getMultiAdapter(
                 (self.context, self.request), name=u'plone_portal_state'
@@ -190,7 +155,7 @@ class EtherpadEditView(BrowserView):
 
         if self.etherpad_iframe_url is None:
             #TODO: made this configuration with language and stuff
-            url = api.portal.get().absolute_url()
+            url = self.portal_state.portal_url()
             basepath = self.etherpad_settings.basepath
             query = {}  # self.embed_settings  # TODO: as dict
             query['lang'] = self.portal_state.language()
