@@ -25,8 +25,8 @@ class IntegrationTestSetup(base.IntegrationTestCase):
                     self.assertEqual(action.condition, '')
                     self.assertEqual(action.visible, True)
                     self.assertEqual(
-                         action.action.text,
-                         'string:${object_url}/etherpad_edit'
+                        action.action.text,
+                        'string:${object_url}/etherpad_edit'
                     )
                     self.assertEqual(len(action.permissions), 1)
                     self.assertEqual(

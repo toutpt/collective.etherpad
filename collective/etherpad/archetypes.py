@@ -16,7 +16,6 @@ from zope import i18nmessageid
 from Products.CMFCore.utils import getToolByName
 
 #plone
-from plone import api
 from plone.uuid.interfaces import IUUID
 from plone.registry.interfaces import IRegistry
 from Products.CMFPlone import PloneMessageFactory

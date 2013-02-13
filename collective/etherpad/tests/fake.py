@@ -117,7 +117,7 @@ class FakeEtherpad(object):
     def createGroupPad(self, groupID=None, padName=None, text=None):
         return
 
-    def createSession(self,  groupID=None, authorID=None, validUntil=None):
+    def createSession(self, groupID=None, authorID=None, validUntil=None):
         return {"sessionID": "s.lHo0Q9krIb1OCFOI"}
 
 
