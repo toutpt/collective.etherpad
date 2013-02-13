@@ -84,7 +84,7 @@
      If you do not uncomment this, /admin will not be available! */
 
   "users": {
-    "admin": {
+    "etherpadadmin": {
       "password": "${etherpad-config:adminPassword}",
       "is_admin": true
     }

@@ -1,9 +1,12 @@
 import json
+import logging
 from zope import component
 from zope import interface
 from plone.registry.interfaces import IRegistry
 from collective.etherpad.settings import EtherpadSettings
 from urllib import urlopen, urlencode
+
+logger = logging.getLogger('collective.etherpad')
 
 
 class IEtherpadLiteClient(interface.Interface):
@@ -337,9 +340,18 @@ class HTTPAPI(object):
         def _callable(**kwargs):
             kwargs['apikey'] = self.apikey
             url = self.uri + method + '?' + urlencode(kwargs)
+            logger.info('call %s(%s)' % (method, kwargs))
             flike = urlopen(url)
             content = flike.read()
-            return json.loads(content)
+            logger.info('-> %s' % content)
+            result = json.loads(content)
+            if result['code'] == 0:
+                if result['message'] != 'ok':
+                    logger.info('message: %s' % result['message'])
+                if 'data' in result:
+                    return result['data']
+            else:
+                logger.error('code = %(code)s, message = %(message)s' % result)
 
         return _callable
 

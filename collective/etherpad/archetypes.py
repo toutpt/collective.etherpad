@@ -1,10 +1,13 @@
 import time
+import logging
 from zope import component
 from Products.Five.browser import BrowserView
 from collective.etherpad.api import IEtherpadLiteClient
 from plone.uuid.interfaces import IUUID
 from Products.CMFCore.utils import getToolByName
 from AccessControl.unauthorized import Unauthorized
+
+logger = logging.getLogger('collective.etherpad')
 
 
 class EtherpadView(BrowserView):
@@ -15,7 +18,8 @@ class EtherpadView(BrowserView):
         self.context = context
         self.request = request
         self.fieldname = None
-        self.padId = None
+        self.padID = None
+        self.padName = None
         self.pads = []
 
         self.groupMapper = None
@@ -35,24 +39,48 @@ class EtherpadView(BrowserView):
         return self.index()
 
     def update(self):
+        """
+        call checkToken({'apikey': u'PLONEAPIKEY'})
+        -> {"code":0,"message":"ok","data":null}
+
+        call createGroupIfNotExistsFor({
+            'apikey': u'PLONEAPIKEY',
+            'groupMapper': '0c6df6f80afc4ddab8424939ffb7d18d'
+        })
+        -> {"code":0,"message":"ok","data":{"groupID":"g.aDAO30LjIDJWvyTU"}}
+
+        call createAuthorIfNotExistsFor({
+            'authorMapper': 'admin', 'apikey': u'PLONEAPIKEY',
+            'name': u'Jean-Michel FRANCOIS'
+        })
+        -> {"code":0,"message":"ok","data":{"authorID":"a.pocAeG7Fra31WvnO"}}
+
+        call listPads({
+            'apikey': u'PLONEAPIKEY', 'groupID': u'g.aDAO30LjIDJWvyTU'
+        })
+        -> {"code":0,"message":"ok","data":{
+            "padIDs":["g.aDAO30LjIDJWvyTU$None"]
+        }}
+
+        call listSessionsOfGroup({
+            'apikey': u'PLONEAPIKEY', 'groupID': u'g.aDAO30LjIDJWvyTU'
+        })
+        -> {"code":0,"message":"ok","data":{
+            "s.9pNACwCQjSFYwcAF":{
+                "groupID":"g.aDAO30LjIDJWvyTU",
+                "authorID":"a.pocAeG7Fra31WvnO",
+                "validUntil":1360774062
+            }
+            }}
+        setCookie("s.9pNACwCQjSFYwcAF")
+        """
         if self.etherpad is None:
             self.etherpad = component.getUtility(IEtherpadLiteClient)
-            res = self.etherpad.checkToken()
-            if res['code'] == 4:
-                raise ValueError(res['message'])
+            self.etherpad.checkToken()
         if self.fieldname is None:
             self.fieldname = self.getEtherpadFieldName()
-        if self.padId is None:
-            self.padID = IUUID(self.context)
 
-        if self.groupMapper is None:
-            # here I don't who can collaborate, so we use uuid as group
-            self.groupMapper = IUUID(self.context)
-        if self.groupID is None:
-            res = self.etherpad.createGroupIfNotExistsFor(groupMapper=self.groupMapper)
-            if res['code'] == 0 and res['message'] == 'ok':
-                self.groupID = res['data']['groupID']
-
+        #Portal maps the internal userid to an etherpad author.
         if self.authorMapper is None:
             mt = getToolByName(self.context, 'portal_membership')
             member = mt.getAuthenticatedMember()
@@ -63,48 +91,90 @@ class EtherpadView(BrowserView):
             else:
                 raise Unauthorized('you must be at least loggedin')
         if self.authorID is None:
-            res = self.etherpad.createAuthorIfNotExistsFor(authorMapper=self.authorMapper,name=self.authorName)
-            self.authorID = res['data']['authorID']
+            author = self.etherpad.createAuthorIfNotExistsFor(
+                authorMapper=self.authorMapper,
+                name=self.authorName
+            )
+            if author:
+                self.authorID = author['authorID']
 
-        #should we create a new pad ?
-        if not self.pads:
-            res = self.etherpad.listPads(groupID=self.groupID)
-            if res['code'] == 0:
-                self.pads = res['data']['padIDs']
-            if not self.pads:
-                self.etherpad.createGroupPad(groupID=self.groupID, padName=self.padId, text=self.context.Description())
+        #Portal maps the internal userid to an etherpad group:
+        if self.groupMapper is None:
+            self.groupMapper = self.authorMapper  # following official doc
+        if self.groupID is None:
+            group = self.etherpad.createGroupIfNotExistsFor(
+                groupMapper=self.groupMapper
+            )
+            if group:
+                self.groupID = group['groupID']
 
+        #Portal creates a pad in the userGroup
+        if self.padName is None:
+            self.padName = IUUID(self.context)
+            logger.info('set padName to %s' % self.padName)
+        if self.padID is None:
+            self.padID = '%s?%s' % (self.groupID, self.padName)
+            self.etherpad.createGroupPad(
+                groupID=self.groupID,
+                padName=self.padName,
+                text=self.context.Description(),
+            )
+
+        #Portal starts the session for the user on the group:
         if not self.validUntil:
-            #24 hours in unix timestamp in seconds
-            self.validUntil = str(int(time.time() + 86400))
+            #2 minutes in unix timestamp in seconds
+            self.validUntil = str(int(time.time() + 2 * 60))
         if not self.sessionID:
-            res = self.etherpad.listSessionsOfGroup(groupID=self.groupID)
-            if res['code'] == 1:
-                nres = self.etherpad.createSession(groupID=self.groupID, authodID=self.authorID, validUntil=self.validUntil)
-                self.sessionID = nres['data']['sessionID']
-            else:
-                #TODO: checkvalidUntil is > now
-                if res['data'] is not None:
-                    self.sessionID = res['data'].keys()[0]
-                else:
-                    nres = self.etherpad.createSession(groupID=self.groupID, authorID=self.authorID, validUntil=self.validUntil)
-                    self.sessionID = nres['data']['sessionID']
+            session = self.etherpad.createSession(
+                groupID=self.groupID,
+                authorID=self.authorID,
+                validUntil=self.validUntil
+            )
+            if session:
+                self.sessionID = session['sessionID']
+#            res = self.etherpad.listSessionsOfGroup(groupID=self.groupID)
+#            if res['code'] == 1:
+#                nres = self.etherpad.createSession(
+#                    groupID=self.groupID,
+#                    authorID=self.authorID,
+#                    validUntil=self.validUntil
+#                )
+#                self.sessionID = nres['data']['sessionID']
+#            else:
+#                #TODO: checkvalidUntil is > now
+#                if res['data'] is not None:
+#                    self.sessionID = res['data'].keys()[0]
+#                else:
+#                    nres = self.etherpad.createSession(
+#                        groupID=self.groupID,
+#                        authorID=self.authorID,
+#                        validUntil=self.validUntil
+#                    )
+#                    self.sessionID = nres['data']['sessionID']
             self._addSessionCookie()
 
         if self.etherpad_iframe_url is None:
+            #TODO: made this configuration with language and stuff
             url = "http://collective.etherpad.com/pad/p/%s" % self.padID
             self.etherpad_iframe_url = url
 
         # TODO: add embed_settings support
 
     def _addSessionCookie(self):
-        if not self.request.cookies.get("sessionID"):
-#            options = {}
-#            options['domain'] = "localhost:9001"
-            #self.request.response.setCookie('sessionID', self.sessionID)
-            self.request.setCookie('sessionID', self.sessionID)
-            url = self.context.absolute_url() + '/etherpad_view'
-            self.request.response.redirect(url)
+#        if not self.request.cookies.get("sessionID"):
+#            logger.info('set cookie')
+#            self.request.response.setCookie(
+#                'sessionID', self.sessionID, path="/"
+#            )
+#            url = self.context.absolute_url() + '/etherpad_view'
+#            self.request.response.redirect(url)
+        logger.info('setCookie("sessionID", "%s")' % self.sessionID)
+        self.request.response.setCookie(
+            'sessionID',
+            self.sessionID,
+            quoted=False,
+            path="/pad/",
+        )
 
     def getEtherpadFieldName(self):
         primary = self.context.getPrimaryField()
