@@ -16,10 +16,14 @@ class IntegrationTestCase(unittest.TestCase):
     def setUp(self):
         super(IntegrationTestCase, self).setUp()
         self.portal = self.layer['portal']
-        testing.setRoles(self.portal, testing.TEST_USER_ID, ['Manager'])
-        self.portal.invokeFactory('Folder', 'test-folder')
-        testing.setRoles(self.portal, testing.TEST_USER_ID, ['Member'])
-        self.folder = self.portal['test-folder']
+        self.request = self.layer['request']
+        self.setRole("Manager")
+        self.portal.invokeFactory('Document', 'test-document')
+        self.setRole("Member")
+        self.document = self.portal['test-document']
+
+    def setRole(self, role="Member"):
+        testing.setRoles(self.portal, testing.TEST_USER_ID, [role])
 
 
 class FunctionalTestCase(IntegrationTestCase):

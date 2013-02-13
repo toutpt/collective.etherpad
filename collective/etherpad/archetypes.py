@@ -18,7 +18,7 @@ from plone.uuid.interfaces import IUUID
 #internal
 from collective.etherpad.api import HTTPAPI
 from plone.registry.interfaces import IRegistry
-from collective.etherpad.settings import EtherpadEmbedSettings
+from collective.etherpad.settings import EtherpadEmbedSettings, EtherpadSettings
 from urllib import urlencode
 
 logger = logging.getLogger('collective.etherpad')
@@ -62,8 +62,23 @@ class EtherpadEditView(BrowserView):
             self.portal_state = component.getMultiAdapter(
                 (self.context, self.request), name=u'plone_portal_state'
             )
+
         if self.portal_registry is None:
             self.portal_registry = component.getUtility(IRegistry)
+
+        if self.embed_settings is None:
+            self.embed_settings = {}
+            registry = self.portal_registry
+            embed_settings = registry.forInterface(EtherpadEmbedSettings)
+            for field in schema.getFields(EtherpadEmbedSettings):
+                value = getattr(embed_settings, field)
+                if value is not None:
+                    self.embed_settings[field] = value
+
+        if self.etherpad_settings is None:
+            registry = self.portal_registry
+            self.etherpad_settings = registry.forInterface(EtherpadSettings)
+
         if self.etherpad is None:
             self.etherpad = HTTPAPI(self.context, self.request)
             self.etherpad.checkToken()
@@ -142,16 +157,6 @@ class EtherpadEditView(BrowserView):
 #                    )
 #                    self.sessionID = nres['data']['sessionID']
             self._addSessionCookie()
-
-        if self.embed_settings is None:
-            self.embed_settings = {}
-            registry = self.portal_registry
-            embed_settings = registry.forInterface(EtherpadEmbedSettings)
-            for field in schema.getFields(EtherpadEmbedSettings):
-                value = getattr(embed_settings, field)
-                if value is not None:
-                    self.embed_settings[field] = value
-            self.etherpad_settings = self.etherpad._settings
 
         if self.etherpad_iframe_url is None:
             #TODO: made this configuration with language and stuff
