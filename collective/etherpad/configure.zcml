@@ -8,6 +8,9 @@
     xmlns:plone="http://namespaces.plone.org/plone"
     i18n_domain="collective.etherpad">
 
+  <include package="Products.CMFCore" file="permissions.zcml"/>
+  <include file="upgrades.zcml" />
+
   <i18n:registerTranslations directory="locales" />
 
   <genericsetup:registerProfile
@@ -17,23 +20,19 @@
       description='Extension profile'
       provides="Products.GenericSetup.interfaces.EXTENSION"
       />
-  <include file="upgrades.zcml" />
 
   <interface
       interface=".layer.Layer"
       name="collective.etherpad"
       />
 
-  <include package="plone.app.contentmenu" />
   <browser:page
-      for="*"
-      name="etherpad_view"
-      menu="plone_displayviews"
-      title="Etherpad"
-      class=".archetypes.EtherpadView"
+      for="Products.Archetypes.interfaces.base.IBaseContent"
+      name="etherpad_edit"
+      class=".archetypes.EtherpadEditView"
       template="etherpad_view.pt"
       layer=".layer.Layer"
-      permission="zope2.View"
+      permission="cmf.ModifyPortalContent"
       />
 
   <utility factory=".api.HTTPAPI" provides=".api.IEtherpadLiteClient"/>

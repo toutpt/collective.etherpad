@@ -10,7 +10,7 @@ from AccessControl.unauthorized import Unauthorized
 logger = logging.getLogger('collective.etherpad')
 
 
-class EtherpadView(BrowserView):
+class EtherpadEditView(BrowserView):
     """Implement etherpad for Archetypes content types"""
     def __init__(self, context, request):
         self.etherpad = None
@@ -79,6 +79,9 @@ class EtherpadView(BrowserView):
             self.etherpad.checkToken()
         if self.fieldname is None:
             self.fieldname = self.getEtherpadFieldName()
+        if self.padName is None:
+            self.padName = IUUID(self.context)
+            logger.info('set padName to %s' % self.padName)
 
         #Portal maps the internal userid to an etherpad author.
         if self.authorMapper is None:
@@ -100,7 +103,7 @@ class EtherpadView(BrowserView):
 
         #Portal maps the internal userid to an etherpad group:
         if self.groupMapper is None:
-            self.groupMapper = self.authorMapper  # following official doc
+            self.groupMapper = self.padName
         if self.groupID is None:
             group = self.etherpad.createGroupIfNotExistsFor(
                 groupMapper=self.groupMapper
@@ -109,9 +112,6 @@ class EtherpadView(BrowserView):
                 self.groupID = group['groupID']
 
         #Portal creates a pad in the userGroup
-        if self.padName is None:
-            self.padName = IUUID(self.context)
-            logger.info('set padName to %s' % self.padName)
         if self.padID is None:
             self.padID = '%s?%s' % (self.groupID, self.padName)
             self.etherpad.createGroupPad(

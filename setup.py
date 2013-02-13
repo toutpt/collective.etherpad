@@ -35,8 +35,6 @@ setup(name='collective.etherpad',
       zip_safe=False,
       install_requires=[
           'setuptools',
-          'etherpad_lite',
-          'plone.app.dexterity',
           # -*- Extra requirements: -*-
       ],
       extras_require=dict(
