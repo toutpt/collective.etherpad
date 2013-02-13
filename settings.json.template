@@ -82,13 +82,14 @@
 
   /* Users for basic authentication. is_admin = true gives access to /admin.
      If you do not uncomment this, /admin will not be available! */
-
+/*
   "users": {
     "etherpadadmin": {
       "password": "${etherpad-config:adminPassword}",
       "is_admin": true
     }
   },
+  */
 
   /* The log level we are using, can be: DEBUG, INFO, WARN, ERROR */
   "loglevel": "INFO",

@@ -1,11 +1,25 @@
+#python
 import time
 import logging
-from zope import component
-from Products.Five.browser import BrowserView
-from collective.etherpad.api import IEtherpadLiteClient
-from plone.uuid.interfaces import IUUID
-from Products.CMFCore.utils import getToolByName
+
+#zope
 from AccessControl.unauthorized import Unauthorized
+from zope import component
+from zope import schema
+from Products.Five.browser import BrowserView
+
+#cmf
+from Products.CMFCore.utils import getToolByName
+
+#plone
+from plone import api
+from plone.uuid.interfaces import IUUID
+
+#internal
+from collective.etherpad.api import IEtherpadLiteClient, HTTPAPI
+from plone.registry.interfaces import IRegistry
+from collective.etherpad.settings import EtherpadEmbedSettings
+from urllib import urlencode
 
 logger = logging.getLogger('collective.etherpad')
 
@@ -13,10 +27,15 @@ logger = logging.getLogger('collective.etherpad')
 class EtherpadEditView(BrowserView):
     """Implement etherpad for Archetypes content types"""
     def __init__(self, context, request):
-        self.etherpad = None
-        self.embed_settings = None
         self.context = context
         self.request = request
+
+        self.etherpad = None
+        self.embed_settings = None
+        self.etherpad_settings = None
+        self.portal_state = None
+        self.portal_registry = None
+
         self.fieldname = None
         self.padID = None
         self.padName = None
@@ -74,8 +93,14 @@ class EtherpadEditView(BrowserView):
             }}
         setCookie("s.9pNACwCQjSFYwcAF")
         """
+        if self.portal_state is None:
+            self.portal_state = component.getMultiAdapter(
+                (self.context, self.request), name=u'plone_portal_state'
+            )
+        if self.portal_registry is None:
+            self.portal_registry = component.getUtility(IRegistry)
         if self.etherpad is None:
-            self.etherpad = component.getUtility(IEtherpadLiteClient)
+            self.etherpad = HTTPAPI(self.context, self.request)
             self.etherpad.checkToken()
         if self.fieldname is None:
             self.fieldname = self.getEtherpadFieldName()
@@ -153,12 +178,25 @@ class EtherpadEditView(BrowserView):
 #                    self.sessionID = nres['data']['sessionID']
             self._addSessionCookie()
 
+        if self.embed_settings is None:
+            self.embed_settings = {}
+            registry = self.portal_registry
+            embed_settings = registry.forInterface(EtherpadEmbedSettings)
+            for field in schema.getFields(EtherpadEmbedSettings):
+                value = getattr(embed_settings, field)
+                if value is not None:
+                    self.embed_settings[field] = value
+            self.etherpad_settings = self.etherpad._settings
+
         if self.etherpad_iframe_url is None:
             #TODO: made this configuration with language and stuff
-            url = "http://collective.etherpad.com/pad/p/%s" % self.padID
+            url = api.portal.get().absolute_url()
+            basepath = self.etherpad_settings.basepath
+            query = {}  # self.embed_settings  # TODO: as dict
+            query['lang'] = self.portal_state.language()
+            encoded_query = urlencode(query)
+            url = "%s%sp/%s?%s" % (url, basepath, self.padID, encoded_query)
             self.etherpad_iframe_url = url
-
-        # TODO: add embed_settings support
 
     def _addSessionCookie(self):
 #        if not self.request.cookies.get("sessionID"):
@@ -173,7 +211,7 @@ class EtherpadEditView(BrowserView):
             'sessionID',
             self.sessionID,
             quoted=False,
-            path="/pad/",
+            path=self.etherpad_settings.basepath,
         )
 
     def getEtherpadFieldName(self):

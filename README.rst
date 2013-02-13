@@ -42,7 +42,7 @@ Companies
 
 Authors
 
-  - JeanMichel FRANCOIS aka toutpt <toutpt@gmail.com>
+* JeanMichel FRANCOIS aka toutpt <toutpt@gmail.com>
 
 .. |makinacom| image:: http://depot.makina-corpus.org/public/logo.gif
 .. _makinacom:  http://www.makina-corpus.com

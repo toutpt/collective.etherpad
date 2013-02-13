@@ -1,10 +1,18 @@
+#python
 import json
 import logging
+from urllib import urlopen, urlencode
+
+#zope
 from zope import component
 from zope import interface
+
+#plone
 from plone.registry.interfaces import IRegistry
+from plone import api
+
+#internal
 from collective.etherpad.settings import EtherpadSettings
-from urllib import urlopen, urlencode
 
 logger = logging.getLogger('collective.etherpad')
 
@@ -316,9 +324,9 @@ class HTTPAPI(object):
     """implement IEtherpadLiteClient using HTTP API"""
     interface.implements(IEtherpadLiteClient)
 
-    def __init__(self):
-#        self.context = context
-#        self.request = request
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
         self.uri = None
         self.apikey = None
         self._registry = None
@@ -330,7 +338,11 @@ class HTTPAPI(object):
         if self._settings is None:
             self._settings = self._registry.forInterface(EtherpadSettings)
         if self.uri is None:
-            self.uri = self._settings.uri
+            basepath = self._settings.basepath
+            apiversion = self._settings.apiversion
+            url = api.portal.get().absolute_url()
+            self.uri = '%s%sapi/%s/' % (url, basepath, apiversion)
+            logger.info(self.uri)
         if self.apikey is None:
             self.apikey = self._settings.apikey
 
@@ -359,12 +371,3 @@ class HTTPAPI(object):
         if name in IEtherpadLiteClient.names():
             return self._get_api(name)
         return object.__getattribute__(self, name)
-
-if __name__ == '__main__':
-    api = HTTPAPI()
-    api._registry = "toto"
-    api._settings = "toto"
-    api.uri = 'http://localhost:9001/api/1.2/'
-    api.apikey = "PLONEAPIKEY"
-    res = api.createAuthorIfNotExistsFor(name="JeanMichel", authorMapper="7")
-    print res

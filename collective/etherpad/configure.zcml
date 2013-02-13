@@ -35,6 +35,4 @@
       permission="cmf.ModifyPortalContent"
       />
 
-  <utility factory=".api.HTTPAPI" provides=".api.IEtherpadLiteClient"/>
-
 </configure>

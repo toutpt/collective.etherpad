@@ -5,15 +5,17 @@ from zope import interface
 class EtherpadSettings(interface.Interface):
     """This is the schema for etherpad service configuration"""
 
-    uri = schema.ASCIILine(
-        title=u"Etherpad URI",
-        default="http://localhost:9001/api/1.2/"
+    basepath = schema.ASCIILine(
+        title=u"Etherpad PATH",
+        default="/pad/",
+    )
+
+    apiversion = schema.ASCIILine(
+        title=u"Etherpad API PATH",
+        default="1.2",
     )
 
     apikey = schema.TextLine(title=u"API KEY")
-
-    #editstate = schema.List()
-    #readonlystate = schema.List()
 
 
 class EtherpadEmbedSettings(interface.Interface):
@@ -37,17 +39,7 @@ class EtherpadEmbedSettings(interface.Interface):
         default=False,
     )
 
-    userName = schema.ASCIILine(
-        title=u"userName",
-        default="unnamed"
-    )
-
     alwaysShowChat = schema.Bool(
         title=u"alwaysShowChat",
-        default=False,
-    )
-
-    lang = schema.ASCIILine(
-        title=u"Lang",
-        default="en",
+        default=True,
     )
