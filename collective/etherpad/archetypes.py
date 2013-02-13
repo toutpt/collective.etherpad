@@ -16,7 +16,7 @@ from plone import api
 from plone.uuid.interfaces import IUUID
 
 #internal
-from collective.etherpad.api import IEtherpadLiteClient, HTTPAPI
+from collective.etherpad.api import HTTPAPI
 from plone.registry.interfaces import IRegistry
 from collective.etherpad.settings import EtherpadEmbedSettings
 from urllib import urlencode

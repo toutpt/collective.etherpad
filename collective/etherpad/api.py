@@ -195,7 +195,7 @@ class IEtherpadLiteClient(interface.Interface):
         """
 
     def getChatHead(padID):
-        """returns the chatHead (last number of the last chat-message) 
+        """returns the chatHead (last number of the last chat-message)
         of the pad
 
         {code: 0, message:"ok", data: {chatHead: 42}}
