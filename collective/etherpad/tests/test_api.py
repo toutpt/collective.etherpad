@@ -31,5 +31,21 @@ class UnitTestAPI(base.UnitTestCase):
             self.assertTrue(hasattr(method, '__call__'))
 
 
+class IntegrationTestAPI(base.IntegrationTestCase):
+    """Here we test integration with Plone, not with etherpad"""
+
+    def setUp(self):
+        super(IntegrationTestAPI, self).setUp()
+        self.api = api.HTTPAPI(self.document, self.request)
+
+    def test_update(self):
+        self.api.update()
+        self.assertIsNotNone(self.api._registry)
+        self.assertIsNotNone(self.api._settings)
+        self.assertIsNotNone(self.api._portal_url)
+        self.assertEqual(self.api.uri, "http://nohost/plone/pad/api/1.2/")
+        self.assertIsNone(self.api.apikey)
+
+
 def test_suite():
     return unittest.defaultTestLoader.loadTestsFromName(__name__)

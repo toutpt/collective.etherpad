@@ -66,18 +66,17 @@ class IntegrationTestArchetypes(base.IntegrationTestCase):
         uid = self.document.UID()
         self.assertEqual(self.view.padName, uid)
         self.assertEqual(self.view.groupMapper, uid)
-        padID = 'g.aDAO30LjIDJWvyTU?0481828843b244a3b07c27d1e3569000'
+        padID = 'g.aDAO30LjIDJWvyTU?%s' % uid
         self.assertEqual(self.view.padID, padID)
 
         #replay the unittest here
         self.assertEqual(self.view.fieldname, 'text')
-        url = 'http://nohost.com/pad/p/g.aDAO30LjIDJWvyTU?UUID03295830259?'
-        url += 'lang=fr'
+        url = 'http://nohost/plone/pad/p/' + padID
+        url += '?lang=en'
         self.assertEqual(self.view.etherpad_iframe_url, url)
         self.assertEqual(self.view.authorID, 'a.pocAeG7Fra31WvnO')
         self.assertEqual(self.view.groupID, 'g.aDAO30LjIDJWvyTU')
         self.assertEqual(self.view.sessionID, 's.lHo0Q9krIb1OCFOI')
-        self.assertEqual(self.view.padID, 'g.aDAO30LjIDJWvyTU?UUID03295830259')
         validUntil = self.view.validUntil
         self.assertTrue(validUntil.isdigit())
         validUntil_datetime = datetime.fromtimestamp(int(validUntil))
