@@ -1,12 +1,16 @@
 #python
 import time
 import logging
+from urllib import urlencode
 
 #zope
 from AccessControl.unauthorized import Unauthorized
+from Acquisition import aq_inner
 from zope import component
+from zope import interface
 from zope import schema
-from Products.Five.browser import BrowserView
+from z3c.form import form, field, button
+from zope import i18nmessageid
 
 #cmf
 from Products.CMFCore.utils import getToolByName
@@ -14,19 +18,45 @@ from Products.CMFCore.utils import getToolByName
 #plone
 from plone import api
 from plone.uuid.interfaces import IUUID
+from plone.registry.interfaces import IRegistry
+from Products.CMFPlone import PloneMessageFactory
 
 #internal
 from collective.etherpad.api import HTTPAPI
-from plone.registry.interfaces import IRegistry
 from collective.etherpad.settings import EtherpadEmbedSettings, EtherpadSettings
-from urllib import urlencode
+from plone.z3cform.layout import FormWrapper
 
 logger = logging.getLogger('collective.etherpad')
+_ = i18nmessageid.MessageFactory('collective.etherpad')
+_p = PloneMessageFactory
 
 
-class EtherpadEditView(BrowserView):
-    """Implement etherpad for Archetypes content types"""
+class EtherpadSyncForm(form.Form):
+    fields = field.Fields(interface.Interface)
+
     def __init__(self, context, request):
+        super(EtherpadSyncForm, self).__init__(context, request)
+        self.etherpad = None
+        self.padID = None
+        self.archetypes_fieldname = None
+
+    @button.buttonAndHandler(_p(u"Save"))
+    def handleEtherpadToPlone(self, action):
+        self.save()
+
+    def save(self):
+        #get the content from etherpad
+        field = self.context.getField(self.archetypes_fieldname)
+        html = self.etherpad.getHTML(padID=self.padID)
+        if html and 'html' in html:
+            field.set(self.context, html['html'], mimetype='text/html')
+
+
+class EtherpadEditView(FormWrapper):
+    """Implement etherpad for Archetypes content types"""
+
+    def __init__(self, context, request):
+        super(EtherpadEditView, self).__init__(context, request)
         self.context = context
         self.request = request
 
@@ -52,6 +82,7 @@ class EtherpadEditView(BrowserView):
         self.validUntil = None
 
         self.etherpad_iframe_url = None
+        self.form_instance = None
 
     def __call__(self):
         self.update()
@@ -118,7 +149,7 @@ class EtherpadEditView(BrowserView):
 
         #Portal creates a pad in the userGroup
         if self.padID is None:
-            self.padID = '%s?%s' % (self.groupID, self.padName)
+            self.padID = '%s$%s' % (self.groupID, self.padName)
             self.etherpad.createGroupPad(
                 groupID=self.groupID,
                 padName=self.padName,
@@ -127,8 +158,8 @@ class EtherpadEditView(BrowserView):
 
         #Portal starts the session for the user on the group:
         if not self.validUntil:
-            #2 minutes in unix timestamp in seconds
-            self.validUntil = str(int(time.time() + 2 * 60))
+            #24 hours in unix timestamp in seconds
+            self.validUntil = str(int(time.time() + 24 * 60 * 60))
         if not self.sessionID:
             session = self.etherpad.createSession(
                 groupID=self.groupID,
@@ -137,25 +168,6 @@ class EtherpadEditView(BrowserView):
             )
             if session:
                 self.sessionID = session['sessionID']
-#            res = self.etherpad.listSessionsOfGroup(groupID=self.groupID)
-#            if res['code'] == 1:
-#                nres = self.etherpad.createSession(
-#                    groupID=self.groupID,
-#                    authorID=self.authorID,
-#                    validUntil=self.validUntil
-#                )
-#                self.sessionID = nres['data']['sessionID']
-#            else:
-#                #TODO: checkvalidUntil is > now
-#                if res['data'] is not None:
-#                    self.sessionID = res['data'].keys()[0]
-#                else:
-#                    nres = self.etherpad.createSession(
-#                        groupID=self.groupID,
-#                        authorID=self.authorID,
-#                        validUntil=self.validUntil
-#                    )
-#                    self.sessionID = nres['data']['sessionID']
             self._addSessionCookie()
 
         if self.etherpad_iframe_url is None:
@@ -168,14 +180,17 @@ class EtherpadEditView(BrowserView):
             url = "%s%sp/%s?%s" % (url, basepath, self.padID, encoded_query)
             self.etherpad_iframe_url = url
 
+        if self.form_instance is None:
+            self.form_instance = EtherpadSyncForm(
+                aq_inner(self.context), self.request
+            )
+            self.form_instance.__name__ = self.__name__
+            self.form_instance.etherpad = self.etherpad
+            self.form_instance.padID = self.padID
+            self.form_instance.archetypes_fieldname = self.fieldname
+            FormWrapper.update(self)
+
     def _addSessionCookie(self):
-#        if not self.request.cookies.get("sessionID"):
-#            logger.info('set cookie')
-#            self.request.response.setCookie(
-#                'sessionID', self.sessionID, path="/"
-#            )
-#            url = self.context.absolute_url() + '/etherpad_view'
-#            self.request.response.redirect(url)
         logger.info('setCookie("sessionID", "%s")' % self.sessionID)
         self.request.response.setCookie(
             'sessionID',

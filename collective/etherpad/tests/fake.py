@@ -131,3 +131,17 @@ class FakePortalState(object):
 
     def portal_url(self):
         return self._portal_url
+
+
+class FakeEtherpadSyncForm(object):
+    def __init__(self):
+        self.updated = False
+
+    def index(self):
+        return "index"
+
+    def render(self):
+        return "render"
+
+    def update(self):
+        self.udpated = True

@@ -22,17 +22,18 @@ class UnitTestArchetypes(base.UnitTestCase):
         self.view.portal_registry = fake.FakeRegistry()
         self.view.padName = 'UUID03295830259'
         self.view.authorMapper = 'toutpt'
+        self.view.form_instance = fake.FakeEtherpadSyncForm()
 
     def test_update(self):
         self.view.update()
         self.assertEqual(self.view.fieldname, 'text')
-        url = 'http://nohost.com/pad/p/g.aDAO30LjIDJWvyTU?UUID03295830259?'
-        url += 'lang=fr'
+        url = 'http://nohost.com/pad/p/g.aDAO30LjIDJWvyTU$UUID03295830259'
+        url += '?lang=fr'
         self.assertEqual(self.view.etherpad_iframe_url, url)
         self.assertEqual(self.view.authorID, 'a.pocAeG7Fra31WvnO')
         self.assertEqual(self.view.groupID, 'g.aDAO30LjIDJWvyTU')
         self.assertEqual(self.view.sessionID, 's.lHo0Q9krIb1OCFOI')
-        self.assertEqual(self.view.padID, 'g.aDAO30LjIDJWvyTU?UUID03295830259')
+        self.assertEqual(self.view.padID, 'g.aDAO30LjIDJWvyTU$UUID03295830259')
         validUntil = self.view.validUntil
         self.assertTrue(validUntil.isdigit())
         validUntil_datetime = datetime.fromtimestamp(int(validUntil))
@@ -66,7 +67,7 @@ class IntegrationTestArchetypes(base.IntegrationTestCase):
         uid = self.document.UID()
         self.assertEqual(self.view.padName, uid)
         self.assertEqual(self.view.groupMapper, uid)
-        padID = 'g.aDAO30LjIDJWvyTU?%s' % uid
+        padID = 'g.aDAO30LjIDJWvyTU$%s' % uid
         self.assertEqual(self.view.padID, padID)
 
         #replay the unittest here

@@ -8,7 +8,9 @@
 <body>
 <div metal:fill-slot="content-core">
 
-  <iframe tal:attributes="src string:${view/etherpad_iframe_url}" width="600" height="400"></iframe>
+  <iframe tal:attributes="src string:${view/etherpad_iframe_url}" width="800" height="500"></iframe>
+
+  <div tal:content="structure view/contents"></div>
 
 </div>
 </body>
