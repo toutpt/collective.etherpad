@@ -13,6 +13,9 @@ in really real-time powered by Node.js
 How to install
 ==============
 
+.. image:: https://secure.travis-ci.org/toutpt/collective.etherpad.png
+    :target: http://travis-ci.org/toutpt/collective.etherpad
+
 This addon can be installed as any other Plone addons. Please follow the
 official documentation_.
 
