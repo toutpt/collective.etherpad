@@ -1,7 +1,7 @@
 from datetime import datetime
 import unittest2 as unittest
 from collective.etherpad.tests import base, fake
-from collective.etherpad.archetypes import EtherpadEditView
+from collective.etherpad.archetypes import EtherpadEditView, EtherpadSyncForm
 
 
 class UnitTestArchetypes(base.UnitTestCase):
@@ -90,6 +90,21 @@ class IntegrationTestArchetypes(base.IntegrationTestCase):
         self.assertEqual(session['path'], '/pad/')
         self.assertEqual(session['quoted'], False)
         self.assertEqual(session['value'], 's.lHo0Q9krIb1OCFOI')
+
+    def test_EtherpadSyncForm(self):
+        form = EtherpadSyncForm(self.document, self.request)
+        etherpad = fake.FakeEtherpad()
+        etherpad.pads['mypad'] = {'html': 'my html'}
+        form.padID = 'g.aDAO30LjIDJWvyTU$mypad'
+        html = self.document.getText()
+        self.assertEqual(html, '')
+        form.etherpad = etherpad
+        form.padID = 'mypad'
+        form.archetypes_fieldname = 'text'
+        form.save()
+
+        html = self.document.getText()
+        self.assertEqual(html, 'my html')
 
 
 def test_suite():

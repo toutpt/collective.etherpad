@@ -105,6 +105,9 @@ class FakeEtherpadEmbedSettings(object):
 
 class FakeEtherpad(object):
 
+    def __init__(self):
+        self.pads = {}
+
     def checkToken(self):
         return True
 
@@ -119,6 +122,9 @@ class FakeEtherpad(object):
 
     def createSession(self, groupID=None, authorID=None, validUntil=None):
         return {"sessionID": "s.lHo0Q9krIb1OCFOI"}
+
+    def getHTML(self, padID=None):
+        return self.pads.get(padID, None)
 
 
 class FakePortalState(object):

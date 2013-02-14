@@ -30,9 +30,22 @@ class UnitTestAPI(base.UnitTestCase):
             self.assertTrue(method is not None)
             self.assertTrue(hasattr(method, '__call__'))
 
+    def test_get_attribute(self):
+        checkToken = self.api.checkToken
+        self.assertIsNotNone(checkToken)
+        self.assertTrue(hasattr(checkToken, '__call__'))
+
+        def getAttr(name):
+            return getattr(self.api, name)
+
+        self.assertRaises(AttributeError, getAttr, 'notexisting')
+
 
 class IntegrationTestAPI(base.IntegrationTestCase):
-    """Here we test integration with Plone, not with etherpad"""
+    """Here we test integration with Plone and beta.etherpad.org
+
+    We should improve tests setup to use a local etherpad ?
+    """
 
     def setUp(self):
         super(IntegrationTestAPI, self).setUp()
@@ -45,6 +58,15 @@ class IntegrationTestAPI(base.IntegrationTestCase):
         self.assertIsNotNone(self.api._portal_url)
         self.assertEqual(self.api.uri, "http://nohost/plone/pad/api/1.2/")
         self.assertIsNone(self.api.apikey)
+
+    def test_checkToken(self):
+        key = 'collective.etherpad.settings.EtherpadSettings.basepath'
+        self.portal.portal_registry[key] = '/'
+        self.api._portal_url = "http://beta.etherpad.org"
+        checkToken = self.api.checkToken
+        self.assertIsNotNone(checkToken)
+        self.assertTrue(hasattr(checkToken, '__call__'))
+        self.assertIsNone(checkToken())  # wrong token
 
 
 def test_suite():

@@ -4,7 +4,6 @@ import logging
 from urllib import urlencode
 
 #zope
-from AccessControl.unauthorized import Unauthorized
 from Acquisition import aq_inner
 from zope import component
 from zope import interface
@@ -126,8 +125,6 @@ class EtherpadEditView(FormWrapper):
                 self.authorMapper = member.getId()
                 if self.authorName is None:
                     self.authorName = member.getProperty("fullname")
-            else:
-                raise Unauthorized('you must be at least loggedin')
         if self.authorID is None:
             author = self.etherpad.createAuthorIfNotExistsFor(
                 authorMapper=self.authorMapper,
@@ -200,6 +197,5 @@ class EtherpadEditView(FormWrapper):
 
     def getEtherpadFieldName(self):
         primary = self.context.getPrimaryField()
-        if not primary:
-            return
-        return primary.getName()
+        if primary:
+            return primary.getName()
