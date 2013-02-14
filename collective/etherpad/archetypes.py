@@ -98,11 +98,7 @@ class EtherpadEditView(FormWrapper):
         if self.embed_settings is None:
             self.embed_settings = {}
             registry = self.portal_registry
-            embed_settings = registry.forInterface(EtherpadEmbedSettings)
-            for field in schema.getFields(EtherpadEmbedSettings):
-                value = getattr(embed_settings, field)
-                if value is not None:
-                    self.embed_settings[field] = value
+            self.embed_settings = registry.forInterface(EtherpadEmbedSettings)
 
         if self.etherpad_settings is None:
             registry = self.portal_registry
@@ -171,9 +167,14 @@ class EtherpadEditView(FormWrapper):
             url = self.portal_state.portal_url()
             basepath = self.etherpad_settings.basepath
             query = {}  # self.embed_settings  # TODO: as dict
+            for field in schema.getFields(EtherpadEmbedSettings):
+                value = getattr(self.embed_settings, field)
+                if value is not None:
+                    query[field] = value
             query['lang'] = self.portal_state.language()
-            encoded_query = urlencode(query)
-            url = "%s%sp/%s?%s" % (url, basepath, self.padID, encoded_query)
+            equery = urlencode(query)
+            equery = equery.replace('True', 'true').replace('False', 'false')
+            url = "%s%sp/%s?%s" % (url, basepath, self.padID, equery)
             self.etherpad_iframe_url = url
 
         if self.form_instance is None:

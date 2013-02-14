@@ -28,7 +28,8 @@ class UnitTestArchetypes(base.UnitTestCase):
         self.view.update()
         self.assertEqual(self.view.fieldname, 'text')
         url = 'http://nohost.com/pad/p/g.aDAO30LjIDJWvyTU$UUID03295830259'
-        url += '?lang=fr'
+        url += '?lang=fr&alwaysShowChat=true&useMonospaceFont=false'
+        url += '&showChat=true&showControls=true&showLineNumbers=true'
         self.assertEqual(self.view.etherpad_iframe_url, url)
         self.assertEqual(self.view.authorID, 'a.pocAeG7Fra31WvnO')
         self.assertEqual(self.view.groupID, 'g.aDAO30LjIDJWvyTU')
@@ -73,7 +74,8 @@ class IntegrationTestArchetypes(base.IntegrationTestCase):
         #replay the unittest here
         self.assertEqual(self.view.fieldname, 'text')
         url = 'http://nohost/plone/pad/p/' + padID
-        url += '?lang=en'
+        url += '?lang=en&alwaysShowChat=true&useMonospaceFont=false'
+        url += '&showChat=true&showControls=true&showLineNumbers=true'
         self.assertEqual(self.view.etherpad_iframe_url, url)
         self.assertEqual(self.view.authorID, 'a.pocAeG7Fra31WvnO')
         self.assertEqual(self.view.groupID, 'g.aDAO30LjIDJWvyTU')
