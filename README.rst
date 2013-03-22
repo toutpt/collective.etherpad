@@ -25,12 +25,22 @@ on github. It is important that your etherpad is on the same domain as your
 Plone site (using a reserved path) to let cookies working properly and so
 your users being authenticated in Plone to be authenticated in etherpad.
 
+You will probably have to install etherpad dependencies: `NodeJS
+<http://nodejs.org/>`_ and `NPM <https://npmjs.org/>`. Under Linux, type ::
+
+  ``apt-get install nodejs npm``
+
 How to configure
 ================
 
 A set of configuration is available on the configuration registry of Plone
 (/portal_registry). You should review theses settings and integrate them
 in your site policy.
+
+Set as value for ``collective.etherpad.settings.EtherpadSettings.apikey``
+the content of the APIKEY.txt file that fits in the etherpad install folder.
+If you have installed etherpad with buildout, you'll find it at
+collective.etherpad/parts/etherpad-lite/APIKEY.txt.
 
 Credits
 =======
