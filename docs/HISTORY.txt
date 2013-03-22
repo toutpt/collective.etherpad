@@ -13,7 +13,6 @@ Changelog
 - fix cookie path when behind a proxy (virtualhostmonster)
   [kiorky]
 
-
 1.0 (2013-02-14)
 ----------------
 
