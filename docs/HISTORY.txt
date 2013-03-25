@@ -4,6 +4,9 @@ Changelog
 1.1 (unreleased)
 ----------------
 
+- Set logs to DEBUG.
+  [thomasdesvenain]
+
 - i18n fixes.
   [thomasdesvenain]
 

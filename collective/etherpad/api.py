@@ -344,7 +344,7 @@ class HTTPAPI(object):
             basepath = self._settings.basepath
             apiversion = self._settings.apiversion
             self.uri = '%s%sapi/%s/' % (self._portal_url, basepath, apiversion)
-            logger.info(self.uri)
+            logger.debug(self.uri)
         if self.apikey is None:
             self.apikey = self._settings.apikey
 
@@ -354,14 +354,14 @@ class HTTPAPI(object):
         def _callable(**kwargs):
             kwargs['apikey'] = self.apikey
             url = self.uri + method + '?' + urlencode(kwargs)
-            logger.info('call %s(%s)' % (method, kwargs))
+            logger.debug('call %s(%s)' % (method, kwargs))
             flike = urlopen(url)
             content = flike.read()
-            logger.info('-> %s' % content)
+            logger.debug('-> %s' % content)
             result = json.loads(content)
             if result['code'] == 0:
                 if result['message'] != 'ok':
-                    logger.info('message: %s' % result['message'])
+                    logger.debug('message: %s' % result['message'])
                 if 'data' in result:
                     return result['data']
             else:
