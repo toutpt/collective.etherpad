@@ -111,7 +111,7 @@ class EtherpadEditView(FormWrapper):
             self.fieldname = self.getEtherpadFieldName()
         if self.padName is None:
             self.padName = IUUID(self.context)
-            logger.info('set padName to %s' % self.padName)
+            logger.debug('set padName to %s' % self.padName)
 
         #Portal maps the internal userid to an etherpad author.
         if self.authorMapper is None:
@@ -188,7 +188,7 @@ class EtherpadEditView(FormWrapper):
             FormWrapper.update(self)
 
     def _addSessionCookie(self):
-        logger.info('setCookie("sessionID", "%s")' % self.sessionID)
+        logger.debug('setCookie("sessionID", "%s")' % self.sessionID)
         self.request.response.setCookie(
             'sessionID',
             self.sessionID,
