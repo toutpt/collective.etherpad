@@ -109,15 +109,19 @@ class IntegrationTestArchetypes(base.IntegrationTestCase):
         html = self.document.getText()
         self.assertEqual(html, 'my html')
 
+
 class VHMIntegrationTestArchetypes(base.IntegrationTestCase):
     """Here we test integration with Plone, not with etherpad"""
 
     def setUp(self):
         super(VHMIntegrationTestArchetypes, self).setUp()
+
         def wrapped(*args, **kw):
             sp = getattr(self, 'subpath', None)
-            if sp == "/": return []
-            if sp == "/foo": return ["foo"]
+            if sp == "/":
+                return []
+            if sp == "/foo":
+                return ["foo"]
             return self.request.old_physicalPathToVirtualPath(
                 *args, **kw)
         setattr(self.request,
