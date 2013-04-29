@@ -74,6 +74,9 @@ class FakeRequest(Request):
     def __init__(self):
         self.response = FakeResponse()
 
+    def physicalPathToVirtualPath(self, path):
+        return path
+
 
 class FakeRegistry(object):
     def __init__(self):
@@ -137,6 +140,12 @@ class FakePortalState(object):
 
     def portal_url(self):
         return self._portal_url
+
+
+class FakePortal(object):
+
+    def getPhysicalPath(self):
+        return ('plone',)
 
 
 class FakeEtherpadSyncForm(object):

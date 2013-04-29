@@ -187,13 +187,33 @@ class EtherpadEditView(FormWrapper):
             self.form_instance.archetypes_fieldname = self.fieldname
             FormWrapper.update(self)
 
+    @property
+    def portal(self):
+        """To be overloaded in unit tests"""
+        if not getattr(self, '_portal', None):
+            self._portal = self.portal_state.portal()
+        return self._portal
+
+    def _getBasePath(self):
+        """In case we are behind a proxy or if VHM remap our
+        urls, take care to remap the cookie basepath too"""
+        padvpath = "/".join(
+            self.request.physicalPathToVirtualPath(
+                self.portal.getPhysicalPath()
+            ))
+        padvpath += self.etherpad_settings.basepath
+        padvpath = padvpath.replace('//', '/')
+        if not padvpath.startswith('/'):
+            padvpath = '/' + padvpath
+        return padvpath
+
     def _addSessionCookie(self):
         logger.debug('setCookie("sessionID", "%s")' % self.sessionID)
         self.request.response.setCookie(
             'sessionID',
             self.sessionID,
             quoted=False,
-            path=self.etherpad_settings.basepath,
+            path=self._getBasePath(),
         )
 
     def getEtherpadFieldName(self):
