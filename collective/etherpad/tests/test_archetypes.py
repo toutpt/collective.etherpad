@@ -150,45 +150,5 @@ class VHMIntegrationTestArchetypes(base.IntegrationTestCase):
             view._getBasePath(), '/foo/pad/')
 
 
-class VHMIntegrationTestArchetypes(base.IntegrationTestCase):
-    """Here we test integration with Plone, not with etherpad"""
-
-    def setUp(self):
-        super(VHMIntegrationTestArchetypes, self).setUp()
-
-        def wrapped(*args, **kw):
-            sp = getattr(self, 'subpath', None)
-            if sp == "/":
-                return []
-            if sp == "/foo":
-                return ["foo"]
-            return self.request.old_physicalPathToVirtualPath(
-                *args, **kw)
-        setattr(self.request,
-                'old_physicalPathToVirtualPath',
-                self.request.physicalPathToVirtualPath)
-        setattr(self.request,
-                'physicalPathToVirtualPath',
-                wrapped)
-
-    def tearDown(self):
-        setattr(self.request,
-                'physicalPathToVirtualPath',
-                self.request.old_physicalPathToVirtualPath)
-
-    def test_getBasePath(self):
-        view = EtherpadEditView(self.document, self.request)
-        view.etherpad = fake.FakeEtherpad()
-        view.update()
-        # plone in mounted on / on the proxy
-        self.subpath = '/'
-        self.assertEqual(
-            view._getBasePath(), '/pad/')
-        # plone in mounted on /foo on the proxy
-        self.subpath = '/foo'
-        self.assertEqual(
-            view._getBasePath(), '/foo/pad/')
-
-
 def test_suite():
     return unittest.defaultTestLoader.loadTestsFromName(__name__)
