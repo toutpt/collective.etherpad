@@ -1,4 +1,6 @@
-from plone.app.testing import *
+from plone.app.testing import PloneWithPackageLayer
+from plone.app.testing import IntegrationTesting
+from plone.app.testing import FunctionalTesting
 import collective.etherpad
 
 
