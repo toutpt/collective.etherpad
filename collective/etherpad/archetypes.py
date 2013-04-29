@@ -199,8 +199,10 @@ class EtherpadEditView(FormWrapper):
         urls, take care to remap the cookie basepath too"""
         padvpath = "/".join(
             self.request.physicalPathToVirtualPath(
-                self.portal.getPhysicalPath()
-            ))
+                self.portal().getPhysicalPath()
+            )
+        )
+
         padvpath += self.etherpad_settings.basepath
         padvpath = padvpath.replace('//', '/')
         if not padvpath.startswith('/'):
