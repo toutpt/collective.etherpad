@@ -6,6 +6,7 @@
     xmlns:i18n="http://namespaces.zope.org/i18n"
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     xmlns:plone="http://namespaces.plone.org/plone"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
     i18n_domain="collective.etherpad">
 
   <include package="Products.CMFCore" file="permissions.zcml"/>
@@ -28,10 +29,19 @@
       name="collective.etherpad"
       />
 
-  <browser:page
+  <browser:page zcml:condition="installed Products.Archetypes"
       for="Products.Archetypes.interfaces.base.IBaseContent"
       name="etherpad_edit"
       class=".archetypes.EtherpadEditView"
+      template="etherpad_view.pt"
+      layer=".layer.Layer"
+      permission="cmf.ModifyPortalContent"
+      />
+
+  <browser:page zcml:condition="installed plone.app.dexterity"
+      for="plone.dexterity.interfaces.IDexterityContent"
+      name="etherpad_edit"
+      class=".dexterity.EtherpadEditView"
       template="etherpad_view.pt"
       layer=".layer.Layer"
       permission="cmf.ModifyPortalContent"
