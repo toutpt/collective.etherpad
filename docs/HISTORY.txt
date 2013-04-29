@@ -4,6 +4,9 @@ Changelog
 1.1 (unreleased)
 ----------------
 
+- Add dexterity support. The field choice is achieved by looking for an 
+  IRichText field in the schema. [toutpt]
+
 - Set logs to DEBUG.
   [thomasdesvenain]
 

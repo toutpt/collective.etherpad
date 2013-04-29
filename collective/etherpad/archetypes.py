@@ -52,6 +52,7 @@ class EtherpadSyncForm(form.Form):
 
 class EtherpadEditView(FormWrapper):
     """Implement etherpad for Archetypes content types"""
+    form_instance_class = EtherpadSyncForm
 
     def __init__(self, context, request):
         super(EtherpadEditView, self).__init__(context, request)
@@ -178,7 +179,7 @@ class EtherpadEditView(FormWrapper):
             self.etherpad_iframe_url = url
 
         if self.form_instance is None:
-            self.form_instance = EtherpadSyncForm(
+            self.form_instance = self.form_instance_class(
                 aq_inner(self.context), self.request
             )
             self.form_instance.__name__ = self.__name__
