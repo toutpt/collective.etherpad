@@ -27,7 +27,7 @@ class UnitTestArchetypes(base.UnitTestCase):
 
     def test_update(self):
         self.view.update()
-        self.assertEqual(self.view.fieldname, 'text')
+        self.assertEqual(self.view.field.getName(), 'text')
         url = 'http://nohost.com/pad/p/g.aDAO30LjIDJWvyTU$UUID03295830259'
         url += '?lang=fr&alwaysShowChat=true&useMonospaceFont=false'
         url += '&showChat=true&showControls=true&showLineNumbers=true'
@@ -73,7 +73,7 @@ class IntegrationTestArchetypes(base.IntegrationTestCase):
         self.assertEqual(self.view.padID, padID)
 
         #replay the unittest here
-        self.assertEqual(self.view.fieldname, 'text')
+        self.assertEqual(self.view.field.getName(), 'text')
         url = 'http://nohost/plone/pad/p/' + padID
         url += '?lang=en&alwaysShowChat=true&useMonospaceFont=false'
         url += '&showChat=true&showControls=true&showLineNumbers=true'
@@ -103,7 +103,7 @@ class IntegrationTestArchetypes(base.IntegrationTestCase):
         self.assertEqual(html, '')
         form.etherpad = etherpad
         form.padID = 'mypad'
-        form.archetypes_fieldname = 'text'
+        form.field = self.document.getField('text')
         form.save()
 
         html = self.document.getText()

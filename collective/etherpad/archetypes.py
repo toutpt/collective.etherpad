@@ -36,7 +36,7 @@ class EtherpadSyncForm(form.Form):
         super(EtherpadSyncForm, self).__init__(context, request)
         self.etherpad = None
         self.padID = None
-        self.archetypes_fieldname = None
+        self.field = None
 
     @button.buttonAndHandler(_p(u"Save"))
     def handleEtherpadToPlone(self, action):
@@ -44,10 +44,9 @@ class EtherpadSyncForm(form.Form):
 
     def save(self):
         #get the content from etherpad
-        field = self.context.getField(self.archetypes_fieldname)
         html = self.etherpad.getHTML(padID=self.padID)
         if html and 'html' in html:
-            field.set(self.context, html['html'], mimetype='text/html')
+            self.field.set(self.context, html['html'], mimetype='text/html')
 
 
 class EtherpadEditView(FormWrapper):
@@ -65,7 +64,7 @@ class EtherpadEditView(FormWrapper):
         self.portal_state = None
         self.portal_registry = None
 
-        self.fieldname = None
+        self.field = None
         self.padID = None
         self.padName = None
         self.pads = []
@@ -108,8 +107,8 @@ class EtherpadEditView(FormWrapper):
         if self.etherpad is None:
             self.etherpad = HTTPAPI(self.context, self.request)
             self.etherpad.checkToken()
-        if self.fieldname is None:
-            self.fieldname = self.getEtherpadFieldName()
+        if self.field is None:
+            self.field = self.getEtherpadField()
         if self.padName is None:
             self.padName = IUUID(self.context)
             logger.debug('set padName to %s' % self.padName)
@@ -185,7 +184,7 @@ class EtherpadEditView(FormWrapper):
             self.form_instance.__name__ = self.__name__
             self.form_instance.etherpad = self.etherpad
             self.form_instance.padID = self.padID
-            self.form_instance.archetypes_fieldname = self.fieldname
+            self.form_instance.field = self.field
             FormWrapper.update(self)
 
     @property
@@ -219,7 +218,5 @@ class EtherpadEditView(FormWrapper):
             path=self._getBasePath(),
         )
 
-    def getEtherpadFieldName(self):
-        primary = self.context.getPrimaryField()
-        if primary:
-            return primary.getName()
+    def getEtherpadField(self):
+        return self.context.getPrimaryField()

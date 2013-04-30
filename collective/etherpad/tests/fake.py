@@ -1,13 +1,23 @@
 #FAKE implementation of interfaces
 from ZPublisher.tests.testPublish import Request, Response
+from zope import interface
+from plone.app.textfield import RichText
+
+
+class FakeModel(interface.Interface):
+    text = RichText(title=u"text")
 
 
 class FakeField(object):
-    def __init__(self, name):
+    def __init__(self, context, name):
         self.name = name
+        self.context = None
 
     def getName(self):
         return self.name
+
+    def set(self, context, value, **kwargs):
+        setattr(self.context, self.name, value)
 
 
 class FakeAcquisition(object):
@@ -27,7 +37,12 @@ class FakeContext(object):
         self.aq_inner.aq_explicit = self
         self._modified = "modified date"
         self.remoteUrl = ''  # fake Link
-        self.primary_field = FakeField('text')
+        self.text = ""
+        self.primary_field = FakeField(self, 'text')
+        self.portal_type = "document"
+
+    def getText(self):
+        return self.text
 
     def getId(self):
         return self.id
