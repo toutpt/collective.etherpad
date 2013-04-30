@@ -1,6 +1,5 @@
 # there are no import of archetypes in .archetypes just the way fields are
 # retrieved
-from z3c.form import button
 from zope import schema
 from zope.component import getUtility
 from collective.etherpad import archetypes

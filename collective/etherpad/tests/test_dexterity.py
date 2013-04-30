@@ -109,8 +109,8 @@ class IntegrationTestDexterity(base.DxIntegrationTestCase):
         from zope import schema
         from plone.dexterity.interfaces import IDexterityFTI
         dexterity_fti = component.getUtility(
-                IDexterityFTI,
-                name="Document"
+            IDexterityFTI,
+            name="Document"
         )
         form.field = schema.getFields(dexterity_fti.lookupSchema())['text']
         form.save()
