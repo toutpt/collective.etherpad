@@ -40,9 +40,8 @@ setup(name='collective.etherpad',
       ],
       extras_require=dict(
           test=['plone.app.testing',
-                'plone.app.dexterity',
-                'plone.app.textfield'
-        ],
+                'plone.app.contenttypes',
+          ],
       ),
       entry_points="""
       # -*- Entry points: -*-

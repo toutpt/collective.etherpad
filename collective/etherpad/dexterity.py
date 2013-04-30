@@ -14,6 +14,16 @@ class EtherpadSyncForm(archetypes.EtherpadSyncForm):
         super(EtherpadSyncForm, self).__init__(context, request)
         self.dexterity_fti = None
 
+    def save(self):
+        #get the content from etherpad
+        html = self.etherpad.getHTML(padID=self.padID)
+        if html and 'html' in html:
+            setattr(
+                self.context,
+                self.field.getName(),
+                self.field.fromUnicode(html['html'])
+            )
+
 
 class EtherpadEditView(archetypes.EtherpadEditView):
     """Implement etherpad for Archetypes content types"""

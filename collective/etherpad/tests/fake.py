@@ -175,3 +175,12 @@ class FakeEtherpadSyncForm(object):
 
     def update(self):
         self.udpated = True
+
+
+class FakeFTI(object):
+
+    def __init__(self, _schema):
+        self.schema = _schema
+
+    def lookupSchema(self):
+        return self.schema
